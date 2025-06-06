@@ -80,10 +80,12 @@
                                 ? asset('storage/' . $product->images[0]) 
                                 : 'https://via.placeholder.com/400x300?text=' . urlencode($product->name);
                         @endphp
-                        <img src="{{ $imageUrl }}" 
-                             alt="{{ $product->name }}" 
-                             class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                             onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text={{ urlencode($product->name) }}'">
+                        <a href="{{ route('products.show', $product->slug) }}">
+                            <img src="{{ $imageUrl }}" 
+                                 alt="{{ $product->name }}" 
+                                 class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text={{ urlencode($product->name) }}'">
+                        </a>
                         <div class="absolute top-2 right-2">
                             <button class="bg-white p-2 rounded-full shadow-md hover:bg-gray-100">
                                 <i class="far fa-heart text-gray-600"></i>
@@ -91,7 +93,11 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <h3 class="text-lg font-medium text-gray-900">{{ $product->name }}</h3>
+                        <h3 class="text-lg font-medium text-gray-900">
+                            <a href="{{ route('products.show', $product->slug) }}" class="hover:underline">
+                                {{ $product->name }}
+                            </a>
+                        </h3>
                         <p class="mt-1 text-sm text-gray-500">
                             @php
                                 $categoryName = $product->category ? $product->category->name : 'Uncategorized';
@@ -105,7 +111,12 @@
                         </p>
                         <div class="mt-2 flex items-center justify-between">
                             <p class="text-lg font-bold text-gray-900">${{ number_format($product->price, 2) }}</p>
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Add to Cart</button>
+                            <form action="{{ route('cart.add') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                <input type="hidden" name="quantity" value="1"> {{-- Default quantity to 1 --}}
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Add to Cart</button>
+                            </form>
                         </div>
                     </div>
                 </div>
