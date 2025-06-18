@@ -1,0 +1,181 @@
+/* public/css/auth.css */
+
+.auth-container {
+    display: flex;
+    max-width: 800px; /* Equivalent to max-w-4xl roughly, adjust as needed */
+    width: 100%;
+    background-color: #fff;
+    border-radius: 0.5rem; /* Equivalent to rounded-lg */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Equivalent to shadow-lg */
+    overflow: hidden;
+}
+
+.auth-left {
+    flex: 1; /* Takes equal width */
+    background-color: #3b82f6; /* Equivalent to bg-blue-600 */
+    color: #fff;
+    padding: 2rem; /* Equivalent to p-8 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.auth-right {
+     flex: 1; /* Takes equal width */
+     padding: 2rem; /* Equivalent to p-8 */
+}
+
+.auth-right h2 {
+    font-size: 1.5rem; /* Equivalent to text-2xl */
+    font-weight: bold;
+    margin-bottom: 1.5rem; /* Equivalent to mb-6 */
+    color: #1f2937; /* Equivalent to text-gray-800 */
+}
+
+.form-group {
+    margin-bottom: 1rem; /* Equivalent to space-y-4 items */
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem; /* Equivalent to text-sm */
+    font-weight: 500; /* Equivalent to font-medium */
+    color: #374151; /* Equivalent to text-gray-700 */
+    margin-bottom: 0.25rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    display: block;
+    width: 100%;
+    border-radius: 0.375rem; /* Equivalent to rounded-md */
+    border: 1px solid #d1d5db; /* Equivalent to border-gray-300 */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Equivalent to shadow-sm */
+    padding: 0.5rem 0.75rem; /* Adjust padding as needed */
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus {
+     border-color: #4f46e5; /* Equivalent to focus:border-indigo-500 */
+     ring-color: #4f46e5; /* Equivalent to focus:ring-indigo-500 */
+     outline: none;
+     box-shadow: 0 0 0 1px #4f46e5; /* Equivalent to focus:ring-indigo-500 */
+}
+
+.form-group .error-message {
+    margin-top: 0.25rem; /* Equivalent to mt-1 */
+    font-size: 0.875rem; /* Equivalent to text-sm */
+    color: #dc2626; /* Equivalent to text-red-600 */
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.form-checkbox input[type="checkbox"] {
+    height: 1rem; /* Equivalent to h-4 */
+    width: 1rem; /* Equivalent to w-4 */
+    border-radius: 0.25rem; /* Equivalent to rounded */
+    border: 1px solid #d1d5db; /* Equivalent to border-gray-300 */
+    color: #4f46e5; /* Equivalent to text-indigo-600 */
+    margin-right: 0.5rem; /* Equivalent to ml-2 (on label) */
+    focus:ring-color: #4f46e5; /* Equivalent to focus:ring-indigo-500 */
+}
+
+.form-checkbox label {
+    font-size: 0.875rem; /* Equivalent to text-sm */
+    color: #374151; /* Equivalent to text-gray-700 */
+    font-weight: normal; /* Override form-group label weight */
+}
+
+.form-link {
+    font-size: 0.875rem; /* Equivalent to text-sm */
+    color: #4f46e5; /* Equivalent to text-indigo-600 */
+    text-decoration: none;
+}
+
+.form-link:hover {
+    color: #6366f1; /* Equivalent to hover:text-indigo-500 */
+}
+
+.auth-button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 0.5rem 1rem; /* Equivalent to py-2 px-4 */
+    border: 1px solid transparent;
+    border-radius: 0.375rem; /* Equivalent to rounded-md */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Equivalent to shadow-sm */
+    font-size: 0.875rem; /* Equivalent to text-sm */
+    font-weight: 500; /* Equivalent to font-medium */
+    color: #fff;
+    background-color: #4f46e5; /* Equivalent to bg-indigo-600 */
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.auth-button:hover {
+    background-color: #4338ca; /* Equivalent to hover:bg-indigo-700 */
+}
+
+.social-login-text {
+    margin-top: 1.5rem; /* Equivalent to mt-6 */
+    text-align: center;
+    color: #4b5563; /* Equivalent to text-gray-600 */
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    space-x: 1rem; /* Equivalent to space-x-4 */
+    margin-top: 0.75rem; /* Equivalent to mt-3 */
+}
+
+.social-icon-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem; /* Equivalent to w-10 */
+    height: 2.5rem; /* Equivalent to h-10 */
+    border-radius: 9999px; /* Equivalent to rounded-full */
+    color: #fff;
+}
+
+.social-icon-link.facebook {
+    background-color: #1877f2; /* Example Facebook blue */
+}
+
+.social-icon-link.google {
+    background-color: #db4437; /* Example Google red */
+}
+
+.social-icon-link.linkedin {
+    background-color: #0a66c2; /* Example LinkedIn blue */
+}
+
+.social-icon-link:hover {
+     opacity: 0.9; /* Simple hover effect */
+}
+
+.hidden-form {
+    display: none;
+}
+
+/* Basic responsiveness - Stack columns on smaller screens */
+@media (max-width: 768px) { /* Equivalent to md breakpoint */
+    .auth-container {
+        flex-direction: column;
+    }
+    .auth-left, .auth-right {
+        width: 100%;
+        flex: none; /* Remove flex grow */
+    }
+    .auth-left {
+         padding-bottom: 1rem; /* Add some padding at the bottom when stacked */
+    }
+} 

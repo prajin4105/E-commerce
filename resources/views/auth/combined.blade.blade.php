@@ -1,0 +1,1 @@
+    <div class="max-w-3xl w-full bg-white rounded-lg shadow-lg overflow-hidden flex"> 

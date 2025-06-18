@@ -6,10 +6,10 @@
     <!-- Hero Section -->
     <div class="relative bg-gray-900 h-[600px]">
         <div class="absolute inset-0">
-            <img class="w-full h-full object-cover opacity-50" src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-4.0.3" alt="Hero background">
+            <img class="w-full h-full object-cover opacity-50" src="https://plus.unsplash.com/premium_photo-1684785617500-fb22234eeedd?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Hero background">
         </div>
         <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-            <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">Welcome to YourStore</h1>
+            <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">Welcome to E-com</h1>
             <p class="mt-6 text-xl text-gray-300 max-w-3xl">Discover amazing products at unbeatable prices. Shop the latest trends and find your perfect style.</p>
             <div class="mt-10">
                 <a href="/products" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-blue-700">Shop Now</a>
@@ -20,27 +20,27 @@
     <!-- Featured Categories -->
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-8">Shop by Category</h1>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($categories as $category)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <div class="w-full h-48 bg-gray-200">
                         @if($category->image)
-                            <img src="{{ asset('storage/' . $category->image) }}" 
-                                 alt="{{ $category->name }}" 
+                            <img src="{{ asset('storageil,' . $category->image) }}"
+                                 alt="{{ $category->name }}"
                                  class="w-full h-full object-cover"
                                  onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text={{ urlencode($category->name) }}'">
                         @else
-                            <img src="https://via.placeholder.com/400x300?text={{ urlencode($category->name) }}" 
-                                 alt="{{ $category->name }}" 
+                            <img src="https://via.placeholder.com/400x300?text={{ urlencode($category->name) }}"
+                                 alt="{{ $category->name }}"
                                  class="w-full h-full object-cover">
                         @endif
                     </div>
-                    
+
                     <div class="p-4">
                         <h2 class="text-xl font-semibold mb-2">{{ $category->name }}</h2>
                         <p class="text-gray-600 mb-4">{{ $category->description }}</p>
-                        
+
                         <!-- @if($category->subcategories->count() > 0)
                             <div class="mt-4">
                                 <h3 class="text-lg font-medium mb-2">Subcategories:</h3>
@@ -53,10 +53,12 @@
                                 </div>
                             </div>
                         @endif -->
-                        
-                        <a href="#" class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-                            View All
-                        </a>
+
+
+                    <a href="{{ route('products.index', ['category' => $category->id]) }}"
+                       class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                        View All Products
+                    </a>
                     </div>
                 </div>
             @endforeach
@@ -72,17 +74,17 @@
                     <div class="group">
                         <div class="relative rounded-lg overflow-hidden">
                             @if($product->images && count($product->images) > 0)
-                                <img src="{{ asset('storage/' . $product->images[0]) }}" 
-                                     alt="{{ $product->name }}" 
+                                <img src="{{ asset('storage/' . $product->images[0]) }}"
+                                     alt="{{ $product->name }}"
                                      class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                                      onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text={{ urlencode($product->name) }}'">
                             @else
-                                <img src="https://via.placeholder.com/400x300?text={{ urlencode($product->name) }}" 
-                                     alt="{{ $product->name }}" 
+                                <img src="https://via.placeholder.com/400x300?text={{ urlencode($product->name) }}"
+                                     alt="{{ $product->name }}"
                                      class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
                             @endif
                             <div class="absolute top-2 right-2">
-                                <button class="bg-white p-2 rounded-full shadow-md hover:bg-gray-100">
+x                                {{-- <button class="bg-white p-2 rounded-full shadow-md hover:bg-gray-100"> --}}
                                     <i class="far fa-heart text-gray-600"></i>
                                 </button>
                             </div>
@@ -103,7 +105,7 @@
                             </p>
                             <div class="mt-2 flex items-center justify-between">
                                 <p class="text-lg font-bold text-gray-900">${{ number_format($product->price, 2) }}</p>
-                                <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Add to Cart</button>
+                                {{-- <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">  </button> --}}
                             </div>
                         </div>
                     </div>
@@ -128,4 +130,4 @@
             </div>
         </div>
     </div>
-@endsection 
+@endsection

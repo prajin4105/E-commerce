@@ -76,20 +76,17 @@
                 <div class="group">
                     <div class="relative rounded-lg overflow-hidden">
                         @php
-                            $imageUrl = $product->images && is_array($product->images) && !empty($product->images) 
-                                ? asset('storage/' . $product->images[0]) 
+                            $imageUrl = $product->images && is_array($product->images) && !empty($product->images)
+                                ? asset('storage/' . $product->images[0])
                                 : 'https://via.placeholder.com/400x300?text=' . urlencode($product->name);
                         @endphp
                         <a href="{{ route('products.show', $product->slug) }}">
-                            <img src="{{ $imageUrl }}" 
-                                 alt="{{ $product->name }}" 
+                            <img src="{{ $imageUrl }}"
+                                 alt="{{ $product->name }}"
                                  class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                                  onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text={{ urlencode($product->name) }}'">
                         </a>
                         <div class="absolute top-2 right-2">
-                            <button class="bg-white p-2 rounded-full shadow-md hover:bg-gray-100">
-                                <i class="far fa-heart text-gray-600"></i>
-                            </button>
                         </div>
                     </div>
                     <div class="mt-4">
@@ -129,4 +126,4 @@
         </div>
     @endif
 </div>
-@endsection 
+@endsection

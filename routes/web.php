@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Models\OrderItem;
+use App\Models\Order;
+use App\Models\Cart;
+use App\Services\RazorpayService;
 
 Route::get('/', function () {
     $categories = Category::with('subcategories')->where('is_active', true)->get();
@@ -89,60 +93,27 @@ Route::get('/contact', function () {
     return view('contact');
 });
 
-// Login routes
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-Route::post('/login', function (Request $request) {
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (Auth::attempt($credentials, $request->remember)) {
-        $request->session()->regenerate();
+// Combined Authentication Routes
+Route::get('/auth', function () {
+    if (Auth::check()) {
         return redirect()->route('home');
     }
+    return view('auth.combined');
+})->name('auth.combined');
 
-    return back()->withErrors([
-        'email' => 'The provided credentials do not match our records.',
-    ])->onlyInput('email');
-});
+// Redirect old auth routes to new combined page
+Route::get('/login', function () {
+    return redirect()->route('auth.combined');
+})->name('login');
 
-// Logout route
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect('/dashboard');
-})->name('logout');
+Route::get('/register', function () {
+    return redirect()->route('auth.combined');
+})->name('register');
 
-// Registration routes
-Route::get('/signup', function () {
-    return view('auth.register');
-})->name('signup');
-
-Route::post('/signup', function (Request $request) {
-    $validator = Validator::make($request->all(), [
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-        'password' => ['required', 'string', 'min:8', 'confirmed'],
-    ]);
-
-    if ($validator->fails()) {
-        return redirect()->back()->withErrors($validator)->withInput();
-    }
-
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-    ]);
-
-    // Redirect to login after registration
-    return redirect()->route('login')->with('success', 'Registration successful. Please login.');
-})->name('signup.post');
+// Keep the POST routes for actual authentication
+Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
+Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register']);
+Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
 // Dashboard route (protected)
 Route::get('/dashboard', function () {
@@ -322,3 +293,229 @@ Route::delete('/cart/remove/{productId}', function (Request $request, $productId
 
     return back()->with('success', 'Product removed from cart!');
 })->name('cart.remove');
+
+// Checkout routes
+Route::get('/checkout', function () {
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Please login to checkout.');
+    }
+
+    if (Auth::check()) {
+        // User is logged in, fetch from database
+        $cartItems = \App\Models\Cart::where('user_id', Auth::id())->with('product')->get();
+        // Structure the data similarly to the session cart for easier view handling
+        $cart = $cartItems->mapWithKeys(function($item) {
+            return [$item->product_id => [
+                'product_id' => $item->product_id,
+                'name' => $item->product->name,
+                'price' => $item->product->price,
+                'quantity' => $item->quantity,
+            ]];
+        })->toArray();
+    } else {
+        // User is a guest, fetch from session
+        $cart = session()->get('cart', []);
+        $productIds = array_keys($cart);
+        $products = \App\Models\Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+        $cart = collect($cart)->map(function ($item, $productId) use ($products) {
+            $product = $products->get($productId);
+            if ($product) {
+                $item['name'] = $product->name;
+                $item['price'] = $product->price;
+            }
+            return $item;
+        })->toArray();
+    }
+
+    if (empty($cart)) {
+        return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+    }
+
+    return view('checkout.index', compact('cart'));
+})->name('checkout.index');
+
+Route::post('/checkout/process', function (Request $request) {
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Please login to checkout.');
+    }
+
+    $request->validate([
+        'email' => 'required|email',
+        'phone' => 'required',
+        'shipping_address' => 'required',
+        'billing_address' => 'required',
+        'payment_method' => 'required|in:razorpay,cod',
+    ]);
+
+    // Get cart items
+    $cartItems = \App\Models\Cart::where('user_id', Auth::id())->with('product')->get();
+    
+    if ($cartItems->isEmpty()) {
+        return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+    }
+
+    // Calculate total
+    $total = $cartItems->sum(function ($item) {
+        return $item->quantity * $item->product->price;
+    });
+
+    // Ensure total is a valid number
+    if (!is_numeric($total) || $total <= 0) {
+        return redirect()->route('cart.index')->with('error', 'Invalid order amount.');
+    }
+
+    // Create order
+    $order = \App\Models\Order::create([
+        'user_id' => Auth::id(),
+        'order_number' => 'ORD-' . strtoupper(uniqid()),
+        'total_amount' => $total,
+        'shipping_address' => $request->shipping_address,
+        'billing_address' => $request->billing_address,
+        'phone' => $request->phone,
+        'email' => $request->email,
+        'notes' => $request->notes,
+        'status' => 'pending',
+        'payment_status' => 'pending',
+        'payment_method' => $request->payment_method
+    ]);
+
+    // Create order items
+    foreach ($cartItems as $item) {
+        \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $item->product_id,
+            'quantity' => $item->quantity,
+            'price' => $item->product->price,
+        ]);
+    }
+
+    // Clear the cart
+    \App\Models\Cart::where('user_id', Auth::id())->delete();
+
+    if ($request->payment_method === 'cod') {
+        // For Cash on Delivery, return success response
+        return response()->json([
+            'success' => true,
+            'internal_order_id' => $order->id,
+            'message' => 'Order placed successfully. Pay on delivery.'
+        ]);
+    }
+
+    try {
+        // Use Razorpay Service to create an order with Razorpay
+        $razorpayService = new \App\Services\RazorpayService();
+        $razorpayOrder = $razorpayService->createOrder($order);
+
+        // Update order with Razorpay order ID
+        $order->update([
+            'razorpay_order_id' => $razorpayOrder->id
+        ]);
+
+        // Return a JSON response with the Razorpay order ID and total for the frontend
+        return response()->json([
+            'success' => true,
+            'internal_order_id' => $order->id,
+            'razorpay_order_id' => $razorpayOrder->id,
+            'amount' => $razorpayOrder->amount, // Amount in paise
+            'currency' => 'INR'
+        ]);
+    } catch (\Exception $e) {
+        // If Razorpay order creation fails, update order status
+        $order->update([
+            'status' => 'failed',
+            'payment_status' => 'failed'
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create payment order. Please try again.'
+        ], 500);
+    }
+})->name('checkout.process');
+
+Route::get('/checkout/success/{order}', function (\App\Models\Order $order, Request $request) {
+    if ($order->user_id !== Auth::id()) {
+        abort(403);
+    }
+
+    // Check if payment is already marked as paid
+    if ($order->payment_status === 'paid') {
+        return view('checkout.success', compact('order'));
+    }
+
+    // For Cash on Delivery orders
+    if ($order->payment_method === 'cod') {
+        // Update order status for COD
+        $order->update([
+            'status' => 'processing',
+            'payment_status' => 'pending'
+        ]);
+
+        return view('checkout.success', compact('order'));
+    }
+
+    // For Razorpay orders, verify payment
+    if (!$request->has(['razorpay_payment_id', 'razorpay_order_id', 'razorpay_signature'])) {
+        // If it's a COD order, don't redirect to failed page
+        if ($order->payment_method === 'cod') {
+            return view('checkout.success', compact('order'));
+        }
+        
+        return redirect()->route('checkout.failed', ['order' => $order->id])
+            ->with('error', 'Invalid payment parameters.');
+    }
+
+    // Verify payment
+    $razorpayService = new \App\Services\RazorpayService();
+    $isPaymentValid = $razorpayService->verifyPayment(
+        $request->razorpay_payment_id,
+        $request->razorpay_order_id,
+        $request->razorpay_signature
+    );
+
+    if ($isPaymentValid) {
+        // Update order status
+        $order->update([
+            'payment_status' => 'paid',
+            'status' => 'processing',
+            'razorpay_payment_id' => $request->razorpay_payment_id
+        ]);
+
+        return view('checkout.success', compact('order'));
+    }
+
+    // If payment verification fails, redirect to failed page
+    return redirect()->route('checkout.failed', ['order' => $order->id])
+        ->with('error', 'Payment verification failed. Please try again.');
+})->name('checkout.success');
+
+Route::get('/checkout/failed/{order}', function (\App\Models\Order $order) {
+    if ($order->user_id !== Auth::id()) {
+        abort(403);
+    }
+
+    // Update order status to failed if not already failed
+    if ($order->payment_status !== 'failed') {
+        $order->update([
+            'payment_status' => 'failed',
+            'status' => 'cancelled'
+        ]);
+    }
+
+    return view('checkout.failed', compact('order'));
+})->name('checkout.failed');
+
+// User Orders Route
+Route::get('/my-orders', function () {
+    if (!Auth::check()) {
+        return redirect()->route('login');
+    }
+
+    $orders = \App\Models\Order::with(['items.product'])
+        ->where('user_id', Auth::id())
+        ->latest()
+        ->paginate(10);
+
+    return view('orders.index', compact('orders'));
+})->name('orders.index');

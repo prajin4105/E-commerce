@@ -45,10 +45,15 @@ class ProductController extends Controller
             $query->latest();
         }
 
-        $products = $query->paginate(12);
+        // $products = $query->inRandomOrderpaginate(12);
+        //ramdom products
+     $products = $query->inRandomOrder()->paginate(12);
+
+
+
         $categories = Category::where('is_active', true)->get();
         $subcategories = Subcategory::where('is_active', true)->get();
 
         return view('products.index', compact('products', 'categories', 'subcategories'));
     }
-} 
+}
