@@ -36,10 +36,16 @@ class ProductResource extends Resource
                         Forms\Components\Select::make('category_id')
                             ->relationship('category', 'name')
                             ->required(),
+                        //subcategory filed with connect sub category table
+                        Forms\Components\Select::make('subcategory_id')
+                            ->relationship('subcategory', 'name')
+                            ->nullable(),
+
+
                         Forms\Components\TextInput::make('price')
                             ->required()
                             ->numeric()
-                            ->prefix('$'),
+                            ->prefix('₹'),
                         Forms\Components\TextInput::make('stock')
                             ->required()
                             ->numeric()
@@ -49,14 +55,23 @@ class ProductResource extends Resource
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Product Media')
-                    ->schema([
-                        Forms\Components\FileUpload::make('images')
-                            ->multiple()
-                            ->image()
-                            ->directory('products')
-                            ->columnSpanFull(),
-                    ]),
+                    Forms\Components\FileUpload::make('image')
+                    ->directory('products')
+                    ->visibility('public')
+                    ->acceptedFileTypes(['image/*'])
+                    ->preserveFilenames()
+                    ->columnSpanFull(),
+
+                // Gallery upload for multiple images
+                Forms\Components\FileUpload::make('gallery')
+                    ->label('Product Gallery')
+                    ->directory('products/gallery')
+                    ->visibility('public')
+                    ->multiple()
+                    ->acceptedFileTypes(['image/*'])
+                    ->preserveFilenames()
+                    ->columnSpanFull(),
+                    
 
                 Forms\Components\Section::make('Additional Information')
                     ->schema([

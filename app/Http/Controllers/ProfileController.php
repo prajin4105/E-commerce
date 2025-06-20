@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use App\Models\Wishlist;
 
 class ProfileController extends Controller
 {
@@ -16,8 +17,16 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $wishlistItems = Wishlist::with('product')
+            ->where('user_id', Auth::id())
+            ->get();
+
+        $userRatings = Auth::user()->ratings()->with('product')->latest()->get();
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'wishlistItems' => $wishlistItems,
+            'userRatings' => $userRatings,
         ]);
     }
 

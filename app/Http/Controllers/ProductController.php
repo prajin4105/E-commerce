@@ -6,6 +6,9 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Subcategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -55,5 +58,106 @@ class ProductController extends Controller
         $subcategories = Subcategory::where('is_active', true)->get();
 
         return view('products.index', compact('products', 'categories', 'subcategories'));
+    }
+
+    public function store(Request $request)
+    {
+        // Log the incoming request data
+        Log::info('Incoming request data:', $request->all());
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:255|unique:products,sku',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric',
+            'stock' => 'required|integer',
+            'category_id' => 'required|exists:categories,id',
+            'subcategory_id' => 'required|exists:subcategories,id',
+            'is_active' => 'boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'gallery' => 'nullable|array',
+            'gallery.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        // Log the validated data
+        Log::info('Validated data:', $validated);
+
+        try {
+            $productData = [
+                'name' => $validated['name'],
+                'slug' => Str::slug($validated['name']),
+                'sku' => $validated['sku'] ?? null,
+                'description' => $validated['description'],
+                'price' => $validated['price'],
+                'stock' => $validated['stock'],
+                'category_id' => $validated['category_id'],
+                'subcategory_id' => $validated['subcategory_id'],
+                'is_active' => $validated['is_active'] ?? true,
+            ];
+
+            // Handle main image upload
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('products', 'public');
+                $productData['image'] = $imagePath;
+            }
+
+            // Handle gallery images
+            if ($request->hasFile('gallery')) {
+                $galleryPaths = [];
+                foreach ($request->file('gallery') as $image) {
+                    $galleryPaths[] = $image->store('products/gallery', 'public');
+                }
+                $productData['gallery'] = $galleryPaths;
+            }
+
+            // Log the data being used to create the product
+            Log::info('Product data for creation:', $productData);
+
+            $product = Product::create($productData);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Product created successfully',
+                'data' => $product
+            ], 201);
+        } catch (\Exception $e) {
+            // Log the error
+            Log::error('Product creation failed:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function show(Product $product)
+    {
+        if (!$product->is_active) {
+            abort(404);
+        }
+
+        $product->load(['category', 'subcategory']);
+        
+        $relatedProducts = Product::where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('is_active', true)
+            ->with(['category', 'subcategory'])
+            ->limit(4)
+            ->get();
+
+        // Calculate cart count
+        if (Auth::check()) {
+            $cartCount = \App\Models\Cart::where('user_id', Auth::id())->sum('quantity');
+        } else {
+            $cart = session()->get('cart', []);
+            $cartCount = array_sum(array_column($cart, 'quantity'));
+        }
+
+        return view('products.show', compact('product', 'relatedProducts', 'cartCount'));
     }
 }

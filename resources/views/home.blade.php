@@ -3,131 +3,347 @@
 @section('title', 'Home - Your E-Commerce Store')
 
 @section('content')
-    <!-- Hero Section -->
-    <div class="relative bg-gray-900 h-[600px]">
-        <div class="absolute inset-0">
-            <img class="w-full h-full object-cover opacity-50" src="https://plus.unsplash.com/premium_photo-1684785617500-fb22234eeedd?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Hero background">
-        </div>
-        <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-            <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">Welcome to E-com</h1>
-            <p class="mt-6 text-xl text-gray-300 max-w-3xl">Discover amazing products at unbeatable prices. Shop the latest trends and find your perfect style.</p>
-            <div class="mt-10">
-                <a href="/products" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-blue-700">Shop Now</a>
+<style>
+    .hero-section {
+        position: relative;
+        height: 80vh;
+        min-height: 600px;
+        background: url('/images/hero-bg.jpg') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+        margin-bottom: 4rem;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%);
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        padding: 0 2rem;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.025em;
+        line-height: 1.1;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+
+    .hero-button {
+        display: inline-block;
+        background: white;
+        color: #6366f1;
+        padding: 1rem 2.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .hero-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .section {
+        padding: 4rem 0;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #1f2937;
+        text-align: center;
+        margin-bottom: 3rem;
+        letter-spacing: -0.025em;
+    }
+
+    .grid {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .swiper-slide {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        height: auto;
+    }
+
+    .card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        min-width: 220px;
+        max-width: 260px;
+        margin: 0 auto;
+        padding-bottom: 1rem;
+        height: 100%;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .card-image {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 16px 16px 0 0;
+        margin-bottom: 1rem;
+    }
+
+    .card-content {
+        width: 100%;
+        padding: 0 1.2rem;
+        text-align: center;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    .product-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #6366f1;
+        margin-bottom: 1rem;
+    }
+
+    .card-button {
+        display: inline-block;
+        background: #6366f1;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .card-button:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 4rem 2rem;
+        color: white;
+        text-align: center;
+        margin-top: 4rem;
+    }
+
+    .cta-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .cta-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        letter-spacing: -0.025em;
+    }
+
+    .cta-subtitle {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+
+    .cta-button {
+        display: inline-block;
+        background: white;
+        color: #6366f1;
+        padding: 1rem 2.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .cta-title {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .hero-section {
+            height: 60vh;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+    }
+
+    .swiper-slide .card {
+        border-radius: 16px !important;
+        overflow: hidden;
+        background: white;
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to E-com</h1>
+        <p class="hero-subtitle">Discover amazing products at unbeatable prices. Shop the latest trends and find your perfect style.</p>
+        <a href="/products" class="hero-button">Shop Now</a>
+    </div>
+</div>
+
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+<!-- Featured Categories -->
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Shop by Category</h2>
+        <div class="swiper category-swiper">
+            <div class="swiper-wrapper">
+                @foreach($categories as $category)
+                    <div class="swiper-slide">
+                        <a href="{{ route('products.index', ['category' => $category->id]) }}" class="min-w-[220px] flex-shrink-0 card hover:shadow-lg transition-shadow duration-300">
+                            <img src="{{ $category->image ? asset('storage/' . $category->image) : 'https://via.placeholder.com/500x300?text=' . urlencode($category->name) }}"
+                                 alt="{{ $category->name }}"
+                                 class="card-image"
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/500x300?text={{ urlencode($category->name) }}'">
+                            <div class="card-content">
+                                <h3 class="card-title">{{ $category->name }}</h3>
+                               
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
             </div>
+            <!-- Add Arrows -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
         </div>
     </div>
+</div>
 
-    <!-- Featured Categories -->
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-8">Shop by Category</h1>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach($categories as $category)
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="w-full h-48 bg-gray-200">
-                        @if($category->image)
-                            <img src="{{ asset('storageil,' . $category->image) }}"
-                                 alt="{{ $category->name }}"
-                                 class="w-full h-full object-cover"
-                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text={{ urlencode($category->name) }}'">
-                        @else
-                            <img src="https://via.placeholder.com/400x300?text={{ urlencode($category->name) }}"
-                                 alt="{{ $category->name }}"
-                                 class="w-full h-full object-cover">
-                        @endif
-                    </div>
-
-                    <div class="p-4">
-                        <h2 class="text-xl font-semibold mb-2">{{ $category->name }}</h2>
-                        <p class="text-gray-600 mb-4">{{ $category->description }}</p>
-
-                        <!-- @if($category->subcategories->count() > 0)
-                            <div class="mt-4">
-                                <h3 class="text-lg font-medium mb-2">Subcategories:</h3>
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach($category->subcategories as $subcategory)
-                                        <a href="#" class="inline-block bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm">
-                                            {{ $subcategory->name }}
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif -->
-
-
-                    <a href="{{ route('products.index', ['category' => $category->id]) }}"
-                       class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-                        View All Products
-                    </a>
+<!-- Featured Products -->
+<div class="section bg-gray-50">
+    <div class="container">
+        <h2 class="section-title">Featured Products</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach($featuredProducts as $product)
+                <div class="card">
+                    <img src="{{ $product->image ? asset('storage/' . $product->image) : $product->getDefaultImageUrl() }}"
+                         alt="{{ $product->name }}"
+                         class="card-image"
+                         onerror="this.onerror=null; this.src='{{ $product->getDefaultImageUrl() }}'">
+                    <div class="card-content">
+                        <h3 class="card-title">{{ $product->name }}</h3>
+                        <p class="card-description">
+                            @php
+                                $categoryName = $product->category ? $product->category->name : 'Uncategorized';
+                                $subcategoryName = $product->subcategory ? $product->subcategory->name : '';
+                            @endphp
+                            {{ $categoryName }}
+                            @if($subcategoryName)
+                                - {{ $subcategoryName }}
+                            @endif
+                        </p>
+                        <p class="product-price">${{ number_format($product->price, 2) }}</p>
+                        <a href="{{ route('products.show', $product->id) }}" class="card-button">View Details</a>
                     </div>
                 </div>
             @endforeach
         </div>
     </div>
+</div>
 
-    <!-- Featured Products -->
-    <div class="bg-white py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-8">Featured Products</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                @foreach($featuredProducts as $product)
-                    <div class="group">
-                        <div class="relative rounded-lg overflow-hidden">
-                            @if($product->images && count($product->images) > 0)
-                                <img src="{{ asset('storage/' . $product->images[0]) }}"
-                                     alt="{{ $product->name }}"
-                                     class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                                     onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text={{ urlencode($product->name) }}'">
-                            @else
-                                <img src="https://via.placeholder.com/400x300?text={{ urlencode($product->name) }}"
-                                     alt="{{ $product->name }}"
-                                     class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
-                            @endif
-                            <div class="absolute top-2 right-2">
-x                                {{-- <button class="bg-white p-2 rounded-full shadow-md hover:bg-gray-100"> --}}
-                                    <i class="far fa-heart text-gray-600"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <h3 class="text-lg font-medium text-gray-900">{{ $product->name }}</h3>
-                            <p class="mt-1 text-sm text-gray-500">
-                                @php
-                                    $categoryName = $product->category ? $product->category->name : 'Uncategorized';
-                                    $subcategoryName = $product->subcategory ? $product->subcategory->name : '';
-                                @endphp
-                                {{-- Display category and subcategory with a separator only if both exist and category is not 'Uncategorized' --}}
-                                {{ $categoryName }}
-                                @if($product->category && $product->subcategory)
-                                    -
-                                @endif
-                                {{ $subcategoryName }}
-                            </p>
-                            <div class="mt-2 flex items-center justify-between">
-                                <p class="text-lg font-bold text-gray-900">${{ number_format($product->price, 2) }}</p>
-                                {{-- <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">  </button> --}}
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+<!-- Call to Action -->
+<div class="cta-section">
+    <div class="cta-content">
+        <div class="cta-text">
+            <h2 class="cta-title">Ready to Shop?</h2>
+            <p class="cta-subtitle">Browse our full collection of products and find your perfect match.</p>
         </div>
+        <a href="/products" class="cta-button">Shop Now</a>
     </div>
+</div>
 
-    <!-- Call to Action -->
-    <div class="bg-blue-600">
-        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
-            <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                <span class="block">Ready to start shopping?</span>
-                <span class="block text-blue-200">Sign up for exclusive offers today.</span>
-            </h2>
-            <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-                <div class="inline-flex rounded-md shadow">
-                    <a href="/register" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50">
-                        Get started
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new Swiper('.category-swiper', {
+            slidesPerView: 3,
+            spaceBetween: 24,
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                0: { slidesPerView: 1 },
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+            },
+        });
+    });
+</script>
 @endsection

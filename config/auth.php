@@ -36,11 +36,18 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'users',
     ],
+
+    'api' => [
+        'driver' => 'token', // or 'sanctum' if you're using Laravel Sanctum
+        'provider' => 'users',
+        'hash' => false,
+    ],
+],
+
 
     /*
     |--------------------------------------------------------------------------

@@ -11,9 +11,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use App\Services\OtpService;
 
 class RegisteredUserController extends Controller
 {
+    protected $otpService;
+
+    public function __construct(OtpService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
+
     /**
      * Display the registration view.
      */
@@ -43,8 +51,17 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
+        // Programmatically log in the user (without showing login form)
+        Auth::attempt([
+            'email' => $request->email,
+            'password' => $request->password,
+        ]);
 
-        return redirect(route('dashboard', absolute: false));
+        // Generate and send OTP
+        $this->otpService->generateOtp($user->email);
+        session(['email' => $user->email]);
+
+        // Redirect to OTP verification page
+        return redirect()->route('verify.otp.form')->with('success', 'OTP has been sent to your email. Please verify to complete registration.');
     }
 }

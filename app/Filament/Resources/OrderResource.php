@@ -38,9 +38,12 @@ class OrderResource extends Resource
                             ->prefix('₹'),
                         Forms\Components\Select::make('status')
                             ->options([
-                                'pending' => 'Pending',
-                                'processing' => 'Processing',
-                                'completed' => 'Completed',
+                                'placed' => 'Order Placed',
+                                'on_the_way' => 'On the Way',
+                                'delivered' => 'Delivered',
+                                'return_requested' => 'Return Requested',
+                                'return_approved' => 'Return Approved',
+                                'returned' => 'Returned',
                                 'cancelled' => 'Cancelled',
                             ])
                             ->required(),
@@ -95,12 +98,26 @@ class OrderResource extends Resource
                     ->money('INR')
                     ->sortable(),
                 Tables\Columns\BadgeColumn::make('status')
+                    ->label('Order Status')
                     ->colors([
-                        'warning' => 'pending',
-                        'primary' => 'processing',
-                        'success' => 'completed',
+                        'primary' => 'placed',
+                        'warning' => 'on_the_way',
+                        'success' => 'delivered',
+                        'info' => 'return_requested',
+                        'secondary' => 'return_approved',
+                        'gray' => 'returned',
                         'danger' => 'cancelled',
-                    ]),
+                    ])
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'placed' => 'Order Placed',
+                        'on_the_way' => 'On the Way',
+                        'delivered' => 'Delivered',
+                        'return_requested' => 'Return Requested',
+                        'return_approved' => 'Return Approved',
+                        'returned' => 'Returned',
+                        'cancelled' => 'Cancelled',
+                        default => ucfirst($state),
+                    }),
                 Tables\Columns\BadgeColumn::make('payment_status')
                     ->colors([
                         'warning' => 'pending',
@@ -119,9 +136,12 @@ class OrderResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'pending' => 'Pending',
-                        'processing' => 'Processing',
-                        'completed' => 'Completed',
+                        'placed' => 'Order Placed',
+                        'on_the_way' => 'On the Way',
+                        'delivered' => 'Delivered',
+                        'return_requested' => 'Return Requested',
+                        'return_approved' => 'Return Approved',
+                        'returned' => 'Returned',
                         'cancelled' => 'Cancelled',
                     ]),
                 Tables\Filters\SelectFilter::make('payment_status')
@@ -130,7 +150,7 @@ class OrderResource extends Resource
                         'paid' => 'Paid',
                         'failed' => 'Failed',
                     ]),
-            ])
+            ])  
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
@@ -157,4 +177,4 @@ class OrderResource extends Resource
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
     }
-} 
+}

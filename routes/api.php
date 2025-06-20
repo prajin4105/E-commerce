@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\SubcategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,9 +27,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
-    // Product Routes
-    Route::apiResource('products', ProductController::class);
-    
     // Category Routes
     Route::apiResource('categories', CategoryController::class);
+    
+    // Subcategory Routes
+    Route::get('/subcategories', [SubcategoryController::class, 'index']);
+    Route::post('/subcategories', [SubcategoryController::class, 'store']);
+    Route::get('/subcategories/{subcategory}', [SubcategoryController::class, 'show']);
+    Route::put('/subcategories/{subcategory}', [SubcategoryController::class, 'update']);
+    Route::delete('/subcategories/{subcategory}', [SubcategoryController::class, 'destroy']);
+});
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
 }); 

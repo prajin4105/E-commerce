@@ -11,89 +11,56 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        // Create main categories
-        $men = Category::create([
-            'name' => 'Men',
-            'slug' => 'men',
-            'description' => 'Men\'s fashion and accessories',
-            'is_active' => true,
-        ]);
-
-        $women = Category::create([
-            'name' => 'Women',
-            'slug' => 'women',
-            'description' => 'Women\'s fashion and accessories',
-            'is_active' => true,
-        ]);
-
-        $kids = Category::create([
-            'name' => 'Kids',
-            'slug' => 'kids',
-            'description' => 'Kids\' fashion and accessories',
-            'is_active' => true,
-        ]);
-
-        // Create subcategories for Men
-        $menSubcategories = [
-            'T-Shirts',
-            'Shirts',
-            'Pants',
-            'Jeans',
-            'Jackets',
-            'Shoes',
-            'Accessories',
+        // Remove previous category creation logic and create exactly 2 categories, each with 5 subcategories
+        $categories = [
+            [
+                'name' => 'Home & Kitchen',
+                'slug' => 'home-kitchen',
+                'image' => 'home-kitchen.jpg',
+                'description' => 'Everything for your home and kitchen.',
+                'is_active' => true,
+                'subcategories' => [
+                    ['name' => 'Cookware', 'image' => 'cookware.jpg', 'description' => 'Pots, pans, and more.'],
+                    ['name' => 'Home Decor', 'image' => 'decor.jpg', 'description' => 'Decorative items for your home.'],
+                    ['name' => 'Furniture', 'image' => 'furniture.jpg', 'description' => 'Chairs, tables, and more.'],
+                    ['name' => 'Dining', 'image' => 'dining.jpg', 'description' => 'Dining sets and accessories.'],
+                    ['name' => 'Storage', 'image' => 'storage.jpg', 'description' => 'Storage solutions.'],
+                ],
+            ],
+            [
+                'name' => 'Sports & Outdoors',
+                'slug' => 'sports-outdoors',
+                'image' => 'sports-outdoors.jpg',
+                'description' => 'Gear for sports and outdoor activities.',
+                'is_active' => true,
+                'subcategories' => [
+                    ['name' => 'Fitness Equipment', 'image' => 'fitness.jpg', 'description' => 'Equipment for fitness.'],
+                    ['name' => 'Outdoor Gear', 'image' => 'outdoor.jpg', 'description' => 'Gear for outdoor adventures.'],
+                    ['name' => 'Sportswear', 'image' => 'sportswear.jpg', 'description' => 'Clothing for sports.'],
+                    ['name' => 'Cycling', 'image' => 'cycling.jpg', 'description' => 'Bikes and accessories.'],
+                    ['name' => 'Camping', 'image' => 'camping.jpg', 'description' => 'Camping essentials.'],
+                ],
+            ],
         ];
 
-        foreach ($menSubcategories as $subcategory) {
-            Subcategory::create([
-                'name' => $subcategory,
-                'slug' => 'men-' . Str::slug($subcategory),
-                'description' => "Men's {$subcategory}",
-                'category_id' => $men->id,
-                'is_active' => true,
+        foreach ($categories as $catData) {
+            $cat = Category::create([
+                'name' => $catData['name'],
+                'slug' => $catData['slug'],
+                'image' => $catData['image'],
+                'description' => $catData['description'],
+                'is_active' => $catData['is_active'],
             ]);
-        }
-
-        // Create subcategories for Women
-        $womenSubcategories = [
-            'Dresses',
-            'Tops',
-            'Skirts',
-            'Pants',
-            'Jeans',
-            'Shoes',
-            'Accessories',
-            'Bags',
-        ];
-
-        foreach ($womenSubcategories as $subcategory) {
-            Subcategory::create([
-                'name' => $subcategory,
-                'slug' => 'women-' . Str::slug($subcategory),
-                'description' => "Women's {$subcategory}",
-                'category_id' => $women->id,
-                'is_active' => true,
-            ]);
-        }
-
-        // Create subcategories for Kids
-        $kidsSubcategories = [
-            'Boys Clothing',
-            'Girls Clothing',
-            'Infant Clothing',
-            'Shoes',
-            'Accessories',
-            'Toys',
-        ];
-
-        foreach ($kidsSubcategories as $subcategory) {
-            Subcategory::create([
-                'name' => $subcategory,
-                'slug' => 'kids-' . Str::slug($subcategory),
-                'description' => "Kids' {$subcategory}",
-                'category_id' => $kids->id,
-                'is_active' => true,
-            ]);
+            foreach ($catData['subcategories'] as $subcatData) {
+                Subcategory::create([
+                    'name' => $subcatData['name'],
+                    'slug' => $catData['slug'] . '-' . Str::slug($subcatData['name']),
+                    'image' => $subcatData['image'],
+                    'description' => $subcatData['description'],
+                    'category_id' => $cat->id,
+                    'is_active' => true,
+                ]);
+            }
         }
     }
 } 

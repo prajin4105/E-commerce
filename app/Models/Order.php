@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order extends Model
 {
@@ -11,23 +12,66 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
-        'order_number',
-        'total_amount',
-        'shipping_address',
-        'billing_address',
-        'phone',
         'email',
-        'notes',
+        'phone_number',
+        'product_id',
+        'quantity',
+        'total_price',
+        'total_amount',
         'status',
         'payment_status',
-        'payment_method',
-        'razorpay_order_id',
-        'razorpay_payment_id'
+        'shipping_address',
+        'billing_address',
+        'order_number',
     ];
 
-    public function user()
+    protected $attributes = [
+        'quantity' => 1,
+        'total_price' => 0.00,
+        'total_amount' => 0.00,
+        'status' => 'pending',
+        'payment_status' => 'pending',
+        'billing_address' => null,
+    ];
+
+    protected $casts = [
+        'total_price' => 'decimal:2',
+        'total_amount' => 'decimal:2',
+        'quantity' => 'integer',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            // Generate order number if not set
+            if (empty($order->order_number)) {
+                $lastOrder = static::orderBy('id', 'desc')->first();
+                $nextId = $lastOrder ? $lastOrder->id + 1 : 1;
+                $order->order_number = 'ORD-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+            }
+            
+            // Set total_amount if not set
+            if (empty($order->total_amount)) {
+                $order->total_amount = $order->total_price ?? 0.00;
+            }
+
+            // Set billing_address to shipping_address if not set
+            if (empty($order->billing_address) && !empty($order->shipping_address)) {
+                $order->billing_address = $order->shipping_address;
+            }
+        });
+    }
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 
     public function items()
@@ -38,5 +82,11 @@ class Order extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function canBeCancelled()
+    {
+        // Allow cancellation only if status is 'placed'
+        return $this->status === 'placed';
     }
 }

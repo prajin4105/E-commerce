@@ -19,7 +19,6 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\OrderStats;
 use App\Filament\Widgets\OrderChart;
-use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\LatestOrders;
 
 class AdminPanelProvider extends PanelProvider
@@ -43,7 +42,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 OrderStats::class,
                 OrderChart::class,
-                PaymentMethodChart::class,
                 LatestOrders::class,
             ])
             ->middleware([

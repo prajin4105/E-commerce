@@ -3,63 +3,226 @@
 @section('title', 'Order Success')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-white rounded-lg shadow-md p-6 text-center">
-            <div class="mb-6">
-                <svg class="mx-auto h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 3rem 2rem;
+        color: white;
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        letter-spacing: -0.025em;
+    }
+
+    .page-description {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    .success-card {
+        background: white;
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .success-icon {
+        width: 64px;
+        height: 64px;
+        color: #10b981;
+        margin: 0 auto 2rem;
+    }
+
+    .order-details {
+        max-width: 400px;
+        margin: 0 auto 2rem;
+    }
+
+    .details-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #4b5563;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-processing {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .primary-button {
+        display: inline-block;
+        background: #6366f1;
+        color: white;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .primary-button:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+    }
+
+    .secondary-button {
+        display: inline-block;
+        background: #f3f4f6;
+        color: #4b5563;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .secondary-button:hover {
+        background: #e5e7eb;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 640px) {
+        .page-header {
+            padding: 2rem 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .success-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .primary-button,
+        .secondary-button {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title">
+        @if($order->payment_method === 'cod')
+            Order Placed Successfully!
+        @else
+            Payment Successful!
+        @endif
+    </h1>
+    <p class="page-description">
+        @if($order->payment_method === 'cod')
+            Your order has been placed successfully. You can pay the amount when the order is delivered.
+        @else
+            Your payment has been processed successfully. Your order will be processed shortly.
+        @endif
+    </p>
+</div>
+
+<div class="container">
+    <div class="success-card">
+        <svg class="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+
+        <div class="order-details">
+            <h2 class="details-title">Order Details</h2>
+            <div class="detail-item">
+                <span class="detail-label">Order Number:</span>
+                <span>{{ $order->order_number }}</span>
             </div>
-
-            <h1 class="text-2xl font-bold text-gray-900 mb-4">
-                @if($order->payment_method === 'cod')
-                    Order Placed Successfully!
-                @else
-                    Payment Successful!
-                @endif
-            </h1>
-
-            <p class="text-gray-600 mb-6">
-                @if($order->payment_method === 'cod')
-                    Your order has been placed successfully. You can pay the amount when the order is delivered.
-                @else
-                    Your payment has been processed successfully. Your order will be processed shortly.
-                @endif
-            </p>
-
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <h2 class="text-lg font-semibold mb-4">Order Details</h2>
-                <div class="space-y-2 text-left">
-                    <p><span class="font-medium">Order Number:</span> {{ $order->order_number }}</p>
-                    <p><span class="font-medium">Total Amount:</span> ₹{{ number_format($order->total_amount, 2) }}</p>
-                    <p><span class="font-medium">Payment Method:</span> 
-                        @if($order->payment_method === 'cod')
-                            Cash on Delivery
-                        @else
-                            Online Payment (Razorpay)
-                        @endif
-                    </p>
-                    <p><span class="font-medium">Status:</span> 
-                        <span class="px-2 py-1 text-sm rounded-full
-                            @if($order->status === 'processing') bg-blue-100 text-blue-800
-                            @elseif($order->status === 'completed') bg-green-100 text-green-800
-                            @else bg-gray-100 text-gray-800
-                            @endif">
-                            {{ ucfirst($order->status) }}
-                        </span>
-                    </p>
-                </div>
+            <div class="detail-item">
+                <span class="detail-label">Total Amount:</span>
+                <span>₹{{ number_format($order->total_amount, 2) }}</span>
             </div>
-
-            <div class="space-y-4">
-                <a href="{{ route('orders.index') }}" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
-                    View Order
-                </a>
-                <a href="{{ route('home') }}" class="inline-block ml-4 text-blue-600 hover:text-blue-800">
-                    Continue Shopping
-                </a>
+            <div class="detail-item">
+                <span class="detail-label">Payment Method:</span>
+                <span>
+                    @if($order->payment_method === 'cod')
+                        Cash on Delivery
+                    @else
+                        Online Payment (Razorpay)
+                    @endif
+                </span>
             </div>
+            <div class="detail-item">
+                <span class="detail-label">Status:</span>
+                <span class="status-badge 
+                    @if($order->status === 'processing') status-processing
+                    @elseif($order->status === 'completed') status-completed
+                    @else status-pending
+                    @endif">
+                    {{ ucfirst($order->status) }}
+                </span>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{ route('orders.index') }}" class="primary-button">
+                View Order
+            </a>
+            <a href="{{ route('home') }}" class="secondary-button">
+                Continue Shopping
+            </a>
         </div>
     </div>
 </div>

@@ -13,22 +13,22 @@ class Category extends Model
     protected $fillable = [
         'name',
         'slug',
-        'description',
         'image',
-        'is_active',
+        'description',
+        'is_active'
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
 
-    public function products(): HasMany
-    {
-        return $this->hasMany(Product::class);
-    }
-
     public function subcategories(): HasMany
     {
         return $this->hasMany(Subcategory::class);
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
     }
 }
