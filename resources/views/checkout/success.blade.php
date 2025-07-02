@@ -191,8 +191,24 @@
                 <span>{{ $order->order_number }}</span>
             </div>
             <div class="detail-item">
-                <span class="detail-label">Total Amount:</span>
+                <span class="detail-label">Subtotal:</span>
                 <span>₹{{ number_format($order->total_amount, 2) }}</span>
+            </div>
+            @if($order->discount_amount > 0)
+                <div class="detail-item">
+                    <span class="detail-label">Discount:</span>
+                    <span style="color: #059669; font-weight: 600;">-₹{{ number_format($order->discount_amount, 2) }}</span>
+                </div>
+                @if($order->coupon)
+                    <div class="detail-item">
+                        <span class="detail-label">Coupon Applied:</span>
+                        <span style="color: #1d4ed8; font-weight: 600;">{{ $order->coupon->code }}</span>
+                    </div>
+                @endif
+            @endif
+            <div class="detail-item" style="border-top: 2px solid #1f2937; padding-top: 1rem; font-weight: 700; font-size: 1.1rem;">
+                <span class="detail-label">Final Amount:</span>
+                <span>₹{{ number_format($order->final_amount, 2) }}</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Payment Method:</span>

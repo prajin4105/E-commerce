@@ -6,22 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('reviews', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('coupons', function (Blueprint $table) {
+            $table->boolean('show_to_user')->default(true)->after('is_active');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('reviews');
+        Schema::table('coupons', function (Blueprint $table) {
+            $table->dropColumn('show_to_user');
+        });
     }
-};
+}; 

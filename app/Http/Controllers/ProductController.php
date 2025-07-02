@@ -26,6 +26,21 @@ class ProductController extends Controller
             $query->where('subcategory_id', $request->subcategory);
         }
 
+        // Search by name or description
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('category', function($catQuery) use ($search) {
+                      $catQuery->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('subcategory', function($subQuery) use ($search) {
+                      $subQuery->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
         // Sort products
         if ($request->filled('sort')) {
             switch ($request->sort) {
@@ -57,7 +72,24 @@ class ProductController extends Controller
         $categories = Category::where('is_active', true)->get();
         $subcategories = Subcategory::where('is_active', true)->get();
 
-        return view('products.index', compact('products', 'categories', 'subcategories'));
+        // Related products based on search
+        $relatedProducts = collect();
+        if ($request->filled('search') && $products->count() > 0) {
+            $categoryIds = $products->pluck('category_id')->unique()->filter();
+            $subcategoryIds = $products->pluck('subcategory_id')->unique()->filter();
+            $relatedProducts = Product::with(['category', 'subcategory'])
+                ->where('is_active', true)
+                ->where(function($q) use ($categoryIds, $subcategoryIds) {
+                    $q->whereIn('category_id', $categoryIds)
+                      ->orWhereIn('subcategory_id', $subcategoryIds);
+                })
+                ->whereNotIn('id', $products->pluck('id'))
+                ->inRandomOrder()
+                ->limit(8)
+                ->get();
+        }
+
+        return view('products.index', compact('products', 'categories', 'subcategories', 'relatedProducts'));
     }
 
     public function store(Request $request)
@@ -147,6 +179,7 @@ class ProductController extends Controller
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
             ->with(['category', 'subcategory'])
+            ->inRandomOrder()
             ->limit(4)
             ->get();
 
@@ -159,5 +192,45 @@ class ProductController extends Controller
         }
 
         return view('products.show', compact('product', 'relatedProducts', 'cartCount'));
+    }
+
+    public function ajaxSearch(Request $request)
+    {
+        $search = $request->input('q');
+        $category = $request->input('category');
+
+        $query = Product::query()->with('category');
+
+        if ($category) {
+            $query->where('category_id', $category);
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('category', function($catQuery) use ($search) {
+                      $catQuery->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('subcategory', function($subQuery) use ($search) {
+                      $subQuery->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $products = $query->where('is_active', true)
+            ->limit(5)
+            ->get()
+            ->map(function($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'image_url' => $product->image_url,
+                    'category' => $product->category ? $product->category->name : null,
+                ];
+            });
+
+        return response()->json($products);
     }
 }

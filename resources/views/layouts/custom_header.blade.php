@@ -139,6 +139,84 @@
         <div class="logo">
             <a href="{{ url('/') }}" class="logo-text">Your Store</a>
         </div>
+        {{-- Show search bar only on products page --}}
+        @if(Route::currentRouteName() === 'products.index')
+        <!-- Autocomplete Search Form -->
+        <div style="position: relative; display: flex; align-items: center; gap: 1rem;">
+            <select id="search-category" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <option value="">All</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                @endforeach
+            </select>
+            <input type="text" id="search-input" placeholder="Search products..." autocomplete="off" style="padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; min-width: 180px; outline: none;" />
+            <button id="search-btn" style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">
+                <i class="fas fa-search"></i>
+            </button>
+            <div id="search-results" style="position: absolute; top: 110%; left: 0; right: 0; background: white; z-index: 1000; display: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px;"></div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('search-input');
+            const category = document.getElementById('search-category');
+            const results = document.getElementById('search-results');
+            const searchBtn = document.getElementById('search-btn');
+            let timeout = null;
+
+            input.addEventListener('input', function() {
+                clearTimeout(timeout);
+                const query = input.value;
+                const cat = category.value;
+                if (query.length < 2) {
+                    results.style.display = 'none';
+                    results.innerHTML = '';
+                    return;
+                }
+                timeout = setTimeout(function() {
+                    fetch(`/search/products?q=${encodeURIComponent(query)}&category=${cat}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                results.innerHTML = '<div style="padding:1rem;">No results found</div>';
+                            } else {
+                                results.innerHTML = data.map(product => `
+                                    <a href="/products/${product.id}" style="display:flex;align-items:center;padding:0.5rem 1rem;text-decoration:none;color:#222;gap:1rem;">
+                                        <img src="${product.image_url || 'https://via.placeholder.com/40x40'}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">
+                                        <div>
+                                            <div><strong>${highlight(product.name, query)}</strong></div>
+                                            <div style="color:#3b82f6;">₹${parseFloat(product.price).toFixed(2)}</div>
+                                        </div>
+                                    </a>
+                                `).join('') + `<a href="/products?search=${encodeURIComponent(query)}" style="display:block;padding:0.75rem 1rem;text-align:center;color:#3b82f6;font-weight:500;">View all results</a>`;
+                            }
+                            results.style.display = 'block';
+                        });
+                }, 250);
+            });
+
+            // Submit on search button click
+            searchBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const query = input.value;
+                const cat = category.value;
+                window.location.href = `/products?search=${encodeURIComponent(query)}${cat ? `&category=${cat}` : ''}`;
+            });
+
+            // Hide results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!results.contains(e.target) && e.target !== input) {
+                    results.style.display = 'none';
+                }
+            });
+
+            // Highlight function
+            function highlight(text, term) {
+                if (!term) return text;
+                return text.replace(new RegExp(`(${term})`, 'gi'), '<span style="background:yellow;">$1</span>');
+            }
+        });
+        </script>
+        @endif
         <div class="nav-links">
             <a href="{{ url('/') }}" class="nav-link">Home</a>
             <a href="{{ url('/products') }}" class="nav-link">Products</a>

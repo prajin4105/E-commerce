@@ -201,7 +201,7 @@ class LoginController extends Controller
             
         } catch (\Exception $e) {
             \Log::error('Google login error: ' . $e->getMessage());
-            return redirect()->route('auth.combined')->withErrors([
+            return redirect()->route('login')->withErrors([
                 'email' => 'Error logging in with Google. Please try again.',
             ]);
         }
@@ -243,7 +243,7 @@ class LoginController extends Controller
             
         } catch (\Exception $e) {
             \Log::error('Microsoft login error: ' . $e->getMessage());
-            return redirect()->route('auth.combined')->withErrors([
+            return redirect()->route('login')->withErrors([
                 'email' => 'Error logging in with Microsoft. Please try again.',
             ]);
         }

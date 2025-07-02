@@ -120,13 +120,64 @@
         color: #6b7280;
         margin-bottom: 0.1rem;
     }
-    .total-amount {
-        text-align: right;
-        font-size: 1.18rem;
+    .price-breakdown {
+        margin-top: 1.5rem;
+        padding: 1.25rem;
+        background: #f8fafc;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+    }
+    .breakdown-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .breakdown-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .breakdown-item.total {
+        border-top: 2px solid #1f2937;
+        border-bottom: none;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
         font-weight: 700;
-        margin-top: 1.2rem;
+        font-size: 1.1rem;
+    }
+    .breakdown-label {
+        font-size: 0.95rem;
+        color: #4b5563;
+        font-weight: 500;
+    }
+    .breakdown-value {
+        font-size: 0.95rem;
         color: #1f2937;
-        letter-spacing: 0.2px;
+        font-weight: 600;
+    }
+    .discount-value {
+        color: #059669;
+        font-weight: 700;
+    }
+    .coupon-code {
+        color: #1d4ed8;
+        font-weight: 600;
+        background: #dbeafe;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+    }
+    .total-value {
+        color: #1f2937;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+    .coupon-info {
+        background: #f0f9ff;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        margin: 0.25rem 0;
     }
     .address-grid {
         display: grid;
@@ -311,7 +362,28 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="total-amount">Total: ₹{{ number_format($order->total_amount, 2) }}</div>
+                <div class="price-breakdown">
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Subtotal:</span>
+                        <span class="breakdown-value">₹{{ number_format($order->total_amount, 2) }}</span>
+                    </div>
+                    @if($order->discount_amount > 0)
+                        <div class="breakdown-item discount">
+                            <span class="breakdown-label">Discount:</span>
+                            <span class="breakdown-value discount-value">-₹{{ number_format($order->discount_amount, 2) }}</span>
+                        </div>
+                        @if($order->coupon)
+                            <div class="breakdown-item coupon-info">
+                                <span class="breakdown-label">Coupon Applied:</span>
+                                <span class="breakdown-value coupon-code">{{ $order->coupon->code }}</span>
+                            </div>
+                        @endif
+                    @endif
+                    <div class="breakdown-item total">
+                        <span class="breakdown-label">Total Amount:</span>
+                        <span class="breakdown-value total-value">₹{{ number_format($order->final_amount, 2) }}</span>
+                    </div>
+                </div>
             </div>
 
             <div class="address-grid">

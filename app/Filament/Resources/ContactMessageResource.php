@@ -49,4 +49,9 @@ class ContactMessageResource extends Resource
             // 'view' => Pages\ViewContactMessage::route('/{record}'),
         ];
     }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Support';
+    }
 }

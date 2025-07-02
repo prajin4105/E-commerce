@@ -43,7 +43,12 @@
                        
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ₹{{ number_format($order->total_amount, 2) }}
+                            <div class="flex flex-col">
+                                <span class="font-medium">₹{{ number_format($order->final_amount, 2) }}</span>
+                                @if($order->discount_amount > 0)
+                                    <span class="text-xs text-green-600">-₹{{ number_format($order->discount_amount, 2) }} discount</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full

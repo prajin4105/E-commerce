@@ -20,75 +20,11 @@ use App\Models\Order;
 use App\Models\Cart;
 use App\Services\RazorpayService;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
-    $categories = Category::with('subcategories')->where('is_active', true)->get();
-    $featuredProducts = Product::with(['category', 'subcategory'])
-        ->where('is_active', true)
-        ->where('is_featured', true)
-        ->take(8)
-        ->get();
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    // Calculate cart count
-    if (Auth::check()) {
-        $cartCount = \App\Models\Cart::where('user_id', Auth::id())->sum('quantity');
-    } else {
-        $cart = session()->get('cart', []);
-        $cartCount = array_sum(array_column($cart, 'quantity'));
-    }
-
-    return view('home', compact('categories', 'featuredProducts', 'cartCount'));
-})->name('home');
-
-Route::get('/products', function () {
-    $query = Product::with(['category', 'subcategory'])->where('is_active', true);
-
-    // Filter by category
-    if (request()->filled('category')) {
-        $query->where('category_id', request('category'));
-    }
-
-    // Filter by subcategory
-    if (request()->filled('subcategory')) {
-        $query->where('subcategory_id', request('subcategory'));
-    }
-
-    // Sort products
-    if (request()->filled('sort')) {
-        switch (request('sort')) {
-            case 'price_asc':
-                $query->orderBy('price', 'asc');
-                break;
-            case 'price_desc':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'name_asc':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'name_desc':
-                $query->orderBy('name', 'desc');
-                break;
-            default:
-                $query->latest();
-        }
-    } else {
-        $query->latest();
-    }
-
-    $products = $query->paginate(12);
-    $categories = Category::with('subcategories')->where('is_active', true)->get();
-    $subcategories = Subcategory::where('is_active', true)->get();
-
-    // Calculate cart count
-    if (Auth::check()) {
-        $cartCount = \App\Models\Cart::where('user_id', Auth::id())->sum('quantity');
-    } else {
-        $cart = session()->get('cart', []);
-        $cartCount = array_sum(array_column($cart, 'quantity'));
-    }
-
-    return view('products.index', compact('products', 'categories', 'subcategories', 'cartCount'));
-})->name('products.index')->middleware('web');
+Route::get('/products', [\App\Http\Controllers\ProductController::class, 'index'])->name('products.index')->middleware('web');
 
 Route::get('/categories', function () {
     $categories = Category::with('subcategories')->where('is_active', true)->get();
@@ -297,63 +233,10 @@ Route::post('/cart/remove', function (Request $request) {
 })->name('cart.remove');
 
 // Product details route
-Route::get('/products/{id}', function ($id) {
-    $product = Product::findOrFail($id);
-    
-    if (!$product->is_active) {
-        abort(404);
-    }
-
-    // Ensure category and subcategory are loaded
-    $product->load(['category', 'subcategory']);
-
-    // Fetch related products (e.g., from the same category, excluding the current product)
-    $relatedProducts = Product::where('category_id', $product->category_id)
-        ->where('id', '!=', $product->id)
-        ->where('is_active', true)
-        ->with(['category', 'subcategory'])
-        ->limit(4)
-        ->get();
-
-    // Calculate cart count and check wishlist status
-    $isInWishlist = false;
-    if (Auth::check()) {
-        $cartCount = \App\Models\Cart::where('user_id', Auth::id())->sum('quantity');
-        $isInWishlist = \App\Models\Wishlist::where('user_id', Auth::id())->where('product_id', $product->id)->exists();
-    } else {
-        $cart = session()->get('cart', []);
-        $cartCount = array_sum(array_column($cart, 'quantity'));
-    }
-
-    return view('products.show', compact('product', 'relatedProducts', 'cartCount', 'isInWishlist'));
-})->name('products.show');
+Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
 // Checkout routes
-Route::get('/checkout', function () {
-    if (Auth::check()) {
-        // User is logged in, fetch from database
-        $cartItems = \App\Models\Cart::where('user_id', Auth::id())->with('product')->get();
-        // Structure the data similarly to the session cart for easier view handling
-        $cart = $cartItems->mapWithKeys(function($item) {
-            return [$item->product_id => [
-                'product_id' => $item->product_id,
-                'name' => $item->product->name,
-                'price' => $item->product->price,
-                'quantity' => $item->quantity,
-                'image' => $item->product->images[0] ?? null,
-            ]];
-        })->toArray();
-    } else {
-        // User is a guest, fetch from session
-        $cart = session()->get('cart', []);
-    }
-
-    if (empty($cart)) {
-        return redirect()->route('cart.index')->with('error', 'Your cart is empty');
-    }
-
-    return view('checkout.index', compact('cart'));
-})->middleware(['auth'])->name('checkout.index');
+Route::get('/checkout', [CheckoutController::class, 'index'])->middleware(['auth'])->name('checkout.index');
 
 Route::post('/checkout/process', function (Request $request) {
     try {
@@ -364,7 +247,8 @@ Route::post('/checkout/process', function (Request $request) {
             'phone' => 'required',
             'shipping_address' => 'required',
             'billing_address' => 'required',
-            'payment_method' => 'required|in:cod,razorpay'
+            'payment_method' => 'required|in:cod,razorpay',
+            'coupon_id' => 'nullable|exists:coupons,id'
         ]);
 
         // Fetch cart depending on user status
@@ -398,12 +282,66 @@ Route::post('/checkout/process', function (Request $request) {
             }
         }
 
+        // Apply coupon discount if provided
+        $discount = 0;
+        $coupon = null;
+        $originalTotal = $total;
+        
+        if ($request->coupon_id) {
+            $coupon = \App\Models\Coupon::find($request->coupon_id);
+            \Log::info('Coupon validation:', [
+                'coupon_id' => $request->coupon_id,
+                'coupon_found' => $coupon ? 'yes' : 'no',
+                'is_active' => $coupon ? $coupon->is_active : 'N/A',
+                'minimum_cart_value' => $coupon ? $coupon->minimum_cart_value : 'N/A',
+                'cart_total' => $total,
+                'valid_to' => $coupon ? $coupon->valid_to : 'N/A',
+                'max_uses' => $coupon ? $coupon->max_uses : 'N/A',
+                'used_count' => $coupon ? $coupon->used_count : 'N/A'
+            ]);
+            
+            if ($coupon && $coupon->is_active) {
+                // Check minimum cart amount
+                if (!$coupon->minimum_cart_value || $total >= $coupon->minimum_cart_value) {
+                        // Check expiry
+                    if (!$coupon->valid_to || $coupon->valid_to > now()) {
+                            // Check usage limit
+                        if (!$coupon->max_uses || $coupon->used_count < $coupon->max_uses) {
+                            // Check if user can use this coupon
+                            if ($coupon->canBeUsedByUser(auth()->user())) {
+                                // Calculate discount using the model method
+                                $discount = $coupon->calculateDiscount($total);
+                                $total = max(0, $total - $discount);
+                                \Log::info('Coupon applied successfully:', [
+                                    'coupon_code' => $coupon->code,
+                                    'discount_amount' => $discount,
+                                    'new_total' => $total
+                                ]);
+                            } else {
+                                \Log::info('Coupon validation failed: User cannot use this coupon');
+                        }
+                        } else {
+                            \Log::info('Coupon validation failed: Usage limit reached');
+                        }
+                    } else {
+                        \Log::info('Coupon validation failed: Coupon expired');
+                    }
+                } else {
+                    \Log::info('Coupon validation failed: Minimum cart value not met');
+                }
+            } else {
+                \Log::info('Coupon validation failed: Coupon not found or not active');
+            }
+        }
+
         // Create order first
         $orderData = [
             'user_id' => auth()->id(),
             'email' => $validated['email'],
             'phone_number' => $validated['phone'],
-            'total_amount' => $total,
+            'total_amount' => $originalTotal,
+            'discount_amount' => $discount,
+            'final_amount' => $total,
             'shipping_address' => $validated['shipping_address'],
             'billing_address' => $validated['billing_address']
         ];
@@ -411,6 +349,16 @@ Route::post('/checkout/process', function (Request $request) {
         \Log::info('Creating order with data:', $orderData);
         
         $order = \App\Models\Order::create($orderData);
+        
+        // Save coupon information if used
+        if ($coupon && $discount > 0) {
+            $order->coupon_id = $coupon->id;
+            $order->save();
+            
+            // Record coupon usage using CouponService
+            $couponService = new \App\Services\CouponService();
+            $couponService->recordCouponUsage($coupon, auth()->user(), $order, $discount);
+        }
         
         // Send order placed email
         \Mail::to($order->email)->send(new \App\Mail\OrderPlaced($order));
@@ -451,7 +399,7 @@ Route::post('/checkout/process', function (Request $request) {
                 'order_id' => $order->id
             ]);
         } else {
-            // For Razorpay, create payment order
+            // For Razorpay, create payment order with discounted amount
             $razorpayService = new \App\Services\RazorpayService();
             $razorpayOrder = $razorpayService->createOrder($order->id, $total);
             
@@ -594,3 +542,10 @@ Route::get('/resend-otp', [App\Http\Controllers\Auth\OtpController::class, 'rese
 
 // Buy Now route
 Route::post('/cart/buy-now', [\App\Http\Controllers\CartController::class, 'buyNow'])->name('cart.buyNow');
+
+// Coupon validation route
+Route::post('/validate-coupon', [App\Http\Controllers\CheckoutController::class, 'validateCoupon'])->name('validate.coupon');
+Route::post('/checkout/validate-coupon', [App\Http\Controllers\CheckoutController::class, 'validateCoupon']);
+
+// New route for searching products
+Route::get('/search/products', [\App\Http\Controllers\ProductController::class, 'ajaxSearch'])->name('products.ajaxSearch');

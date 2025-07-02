@@ -18,6 +18,9 @@ class Order extends Model
         'quantity',
         'total_price',
         'total_amount',
+        'discount_amount',
+        'final_amount',
+        'coupon_id',
         'status',
         'payment_status',
         'shipping_address',
@@ -29,6 +32,8 @@ class Order extends Model
         'quantity' => 1,
         'total_price' => 0.00,
         'total_amount' => 0.00,
+        'discount_amount' => 0.00,
+        'final_amount' => 0.00,
         'status' => 'pending',
         'payment_status' => 'pending',
         'billing_address' => null,
@@ -37,6 +42,8 @@ class Order extends Model
     protected $casts = [
         'total_price' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'final_amount' => 'decimal:2',
         'quantity' => 'integer',
     ];
 
@@ -82,6 +89,11 @@ class Order extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function canBeCancelled()

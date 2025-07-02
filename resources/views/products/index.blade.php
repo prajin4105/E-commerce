@@ -445,5 +445,9 @@
             {{ $products->appends(request()->query())->links() }}
         </div>
     @endif
+
+    @if(request('search') && isset($relatedProducts) && $relatedProducts->isNotEmpty())
+        {{-- Related Products section removed as per user request --}}
+    @endif
 </div>
 @endsection 

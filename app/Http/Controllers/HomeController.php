@@ -13,6 +13,7 @@ class HomeController extends Controller
         $categories = Category::with('subcategories')->get();
         $featuredProducts = Product::where('is_featured', true)
             ->with(['category', 'subcategory'])
+            ->inRandomOrder()
             ->take(8)
             ->get();
 

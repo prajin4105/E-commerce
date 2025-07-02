@@ -225,6 +225,11 @@
                         {{ __('Dashboard') }}
                     </a>
                 </div>
+                <!-- Search Form (Desktop) -->
+                <form action="{{ route('products.index') }}" method="GET" style="margin-left: 2rem; display: flex; align-items: center;">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search products..." style="padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; min-width: 220px; outline: none;" />
+                    <button type="submit" style="margin-left: 0.5rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">Search</button>
+                </form>
             </div>
 
             <div class="nav-right">
@@ -277,6 +282,11 @@
                 {{ __('Dashboard') }}
             </a>
         </div>
+        <!-- Search Form (Mobile) -->
+        <form action="{{ route('products.index') }}" method="GET" style="margin: 1rem 0; display: flex; align-items: center;">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search products..." style="padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; width: 100%; outline: none;" />
+            <button type="submit" style="margin-left: 0.5rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">Search</button>
+        </form>
 
         @auth
             <div class="mobile-user-info">

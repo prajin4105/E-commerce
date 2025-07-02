@@ -58,6 +58,11 @@ class SubcategoryResource extends Resource
         return static::getModel()::count() > 10 ? 'warning' : 'primary';
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Shop Management';
+    }
+
     public static function form(Form $form): Form
     {
         return $form

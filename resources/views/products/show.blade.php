@@ -228,7 +228,7 @@
             <div class="price-box">
                 <p class="price">₹{{ number_format($product->price, 2) }}</p>
                 @if($product->stock <= 5 && $product->stock > 0)
-                    <div style="color: #eab308; font-weight: bold; font-size: 1em; margin-bottom: 0.5rem;">Only {{ $product->stock }} left in stock!</div>
+                    <div style="color:rgba(234, 8, 57, 0.45); font-weight: bold; font-size: 1em; margin-bottom: 0.5rem;">Only {{ $product->stock }} left in stock!</div>
                 @endif
                 @if($product->stock == 0)
                     <div style="color: #ef4444; font-weight: bold; font-size: 1em; margin-bottom: 0.5rem;">Out of stock! This item cannot be ordered right now.</div>

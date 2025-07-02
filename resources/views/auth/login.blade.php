@@ -124,5 +124,10 @@
     <div class="register-link">
         <p>Don't have an account? <a href="{{ route('register') }}">Register here</a></p>
     </div>
+    <div style="text-align:center; margin-top:1.5rem;">
+        <a href="{{ route('login.google') }}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 2rem;background:#fff;border:1.5px solid #d1d5db;border-radius:0.5rem;font-weight:600;color:#374151;text-decoration:none;box-shadow:0 2px 8px rgba(99,102,241,0.08);transition:background 0.2s;">
+            <img src="https://img.icons8.com/?size=160&id=4hR4Ih04Je2t&format=png" alt="Google" style="width:22px;height:22px;"> Sign in with Google
+        </a>
+    </div>
 </div>
 </x-guest-layout>

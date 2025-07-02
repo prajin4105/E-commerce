@@ -161,6 +161,12 @@
             <a @click="activeTab = 'wishlist'" :class="{ 'active': activeTab === 'wishlist' }" class="profile-sidebar-link">Wish List</a>
             <a @click="activeTab = 'rated'" :class="{ 'active': activeTab === 'rated' }" class="profile-sidebar-link">Rated Products</a>
             <a @click="activeTab = 'delete'" :class="{ 'active': activeTab === 'delete' }" class="profile-sidebar-link">Delete Account</a>
+            <form method="POST" action="{{ route('logout') }}" style="margin-top: 1.5rem;">
+                @csrf
+                <button type="submit" class="profile-sidebar-link" style="width:100%;text-align:left;color:#dc2626;font-weight:600;">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </button>
+            </form>
         </nav>
     </aside>
 
@@ -171,7 +177,7 @@
 
         <div x-show="activeTab === 'password'" class="profile-section">
             @include('profile.partials.update-password-form')
-</div>
+        </div>
 
         <div x-show="activeTab === 'orders'" class="profile-section">
             <h2>My Orders</h2>
@@ -198,15 +204,15 @@
                                 </h3>
                                 <p class="wishlist-price">₹{{ number_format($item->product->price, 2) }}</p>
                                 <form action="{{ route('wishlist.toggle', $item->product) }}" method="POST">
-            @csrf
+                                    @csrf
                                     <button type="submit" class="remove-button">Remove</button>
-        </form>
+                                </form>
                             </div>
-            </div>
+                        </div>
                     @endforeach
                 </div>
-                @endif
-            </div>
+            @endif
+        </div>
 
         <div x-show="activeTab === 'rated'" class="profile-section">
             <h2>My Rated Products</h2>
@@ -229,15 +235,15 @@
                                         <i class="fas fa-star {{ $i <= $rating->rating ? 'text-yellow-400' : 'text-gray-300' }}"></i>
                                     @endfor
                                     <span class="ml-2 text-xs text-gray-500">{{ $rating->created_at->format('M d, Y') }}</span>
-            </div>
+                                </div>
                                 <p class="wishlist-price">₹{{ number_format($rating->product->price, 2) }}</p>
                                 <p class="text-gray-700 mt-2">{{ $rating->review }}</p>
-    </div>
-        </div>
+                            </div>
+                        </div>
                     @endforeach
                 </div>
-                @endif
-    </div>
+            @endif
+        </div>
 
         <div x-show="activeTab === 'delete'" class="profile-section">
             @include('profile.partials.delete-user-form')

@@ -33,7 +33,7 @@ class RazorpayService
 
             $orderData = [
                 'receipt' => 'ORD-' . $order->id,
-                'amount' => $amount * 100, // Convert to paise
+                'amount' => (int) round($amount * 100), // Convert to paise and ensure integer
                 'currency' => 'INR',
                 'payment_capture' => 1
             ];

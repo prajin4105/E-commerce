@@ -296,7 +296,7 @@
                                     @endif
                         <span class="product-name">{{ $item['name'] }}</span>
                                     </div>
-                    <div class="product-price">${{ number_format($item['price'], 2) }}</div>
+                    <div class="product-price">₹{{ number_format($item['price'], 2) }}</div>
                     <div>
                         <form action="{{ url('/cart/update') }}" method="POST" class="update-quantity-form">
                                     @csrf
@@ -315,7 +315,7 @@
                                     <input type="hidden" name="product_id" value="{{ $productId }}">
                                 </form>
                     </div>
-                    <div class="item-total">${{ number_format($item['price'] * $item['quantity'], 2) }}</div>
+                    <div class="item-total">₹{{ number_format($item['price'] * $item['quantity'], 2) }}</div>
                     <div>
                         <form action="{{ url('/cart/remove') }}" method="POST" class="remove-item-form">
                                     @csrf
@@ -335,7 +335,7 @@
             <h2 class="summary-title">Order Summary</h2>
             <div class="summary-row">
                 <span>Subtotal</span>
-                <span>${{ number_format(array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cart)), 2) }}</span>
+                <span>₹{{ number_format(array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cart)), 2) }}</span>
             </div>
             <div class="summary-row">
                 <span>Shipping</span>
@@ -343,7 +343,7 @@
             </div>
             <div class="summary-row summary-total">
                 <span>Total</span>
-                <span>${{ number_format(array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cart)), 2) }}</span>
+                <span>₹{{ number_format(array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cart)), 2) }}</span>
                 </div>
 
             <a href="{{ url('/checkout') }}" class="checkout-button">
