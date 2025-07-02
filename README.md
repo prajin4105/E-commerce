@@ -1,4 +1,4 @@
-# Laravel E-Commerce Store
+![image](https://github.com/user-attachments/assets/2946879e-977b-41ae-aaae-004fe8ae9327)# Laravel E-Commerce Store
 
 A modern, full-featured e-commerce web application built with Laravel, Livewire, Filament, and Tailwind CSS.
 
@@ -23,7 +23,13 @@ A modern, full-featured e-commerce web application built with Laravel, Livewire,
 
 ## Screenshots
 
-> _Add your own screenshots here!_
+>![image](https://github.com/user-attachments/assets/5ba48ad6-3851-43ce-b1ee-20657c835249)
+>![image](https://github.com/user-attachments/assets/0357c9e4-5c7e-48a6-aa9b-78fe9ed75cb9)
+>![image](https://github.com/user-attachments/assets/7dadae4e-f1cf-444c-9a80-361526d0f7cf)
+>![image](https://github.com/user-attachments/assets/bd5e3e78-bb53-46ef-b8f5-f73dad970908)
+
+
+
 
 ---
 
