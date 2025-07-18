@@ -94,7 +94,7 @@ class CheckoutController extends Controller
         } else {
             session()->forget('cart');
         }
-
+        
         return response()->json([
             'success' => true,
             'amount' => $finalTotal * 100, // Convert to paise for Razorpay

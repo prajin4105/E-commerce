@@ -549,3 +549,6 @@ Route::post('/checkout/validate-coupon', [App\Http\Controllers\CheckoutControlle
 
 // New route for searching products
 Route::get('/search/products', [\App\Http\Controllers\ProductController::class, 'ajaxSearch'])->name('products.ajaxSearch');
+
+// Report PDF generation route
+Route::get('/admin/reports/generate', [\App\Http\Controllers\ReportController::class, 'generate'])->name('admin.reports.generate');
