@@ -3,17 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ReportResource\Pages;
-use App\Filament\Resources\ReportResource\RelationManagers;
 use App\Models\Report;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Order;
 use App\Models\Product;
@@ -21,6 +16,7 @@ use App\Models\User;
 use App\Models\Payment;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Notifications\Notification;
 
 class ReportResource extends Resource
 {
@@ -47,17 +43,14 @@ class ReportResource extends Resource
                     ])
                     ->required()
                     ->default('orders'),
-
                 Forms\Components\DatePicker::make('start_date')
                     ->label('Start Date')
                     ->required()
                     ->default(now()->subMonth()->format('Y-m-d')),        
-
                 Forms\Components\DatePicker::make('end_date')
                     ->label('End Date')
                     ->required()
                     ->default(now()->format('Y-m-d')),
-
                 Forms\Components\Select::make('format')
                     ->label('Export Format')
                     ->options([
@@ -91,16 +84,7 @@ class ReportResource extends Resource
                     ->label('Generated At')
                     ->dateTime(),
             ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('report_type')
-                    ->options([
-                        'orders' => 'Orders Report',
-                        'sales' => 'Sales Summary',
-                        'products' => 'Products Report',
-                        'users' => 'Users Report',
-                        'payments' => 'Payments Report',
-                    ]),
-            ])
+            
             ->actions([
                 Tables\Actions\Action::make('generate')
                     ->label('Generate Report')
@@ -115,19 +99,13 @@ class ReportResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label('New Report')
-                    ->icon('heroicon-o-plus'),
             ]);
+            // Note: headerActions block is REMOVED
     }
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -146,42 +124,36 @@ class ReportResource extends Resource
 
             switch ($record->report_type) {
                 case 'orders':
-                    $data = static::generateOrdersReport($startDate, $endDate, $record->format ?? 'csv');
+                    $data = static::generateOrdersReport($startDate, $endDate);
                     break;
                 case 'sales':
-                    $data = static::generateSalesReport($startDate, $endDate, $record->format ?? 'csv');
+                    $data = static::generateSalesReport($startDate, $endDate);
                     break;
                 case 'products':
-                    $data = static::generateProductsReport($startDate, $endDate, $record->format ?? 'csv');
+                    $data = static::generateProductsReport($startDate, $endDate);
                     break;
                 case 'users':
-                    $data = static::generateUsersReport($startDate, $endDate, $record->format ?? 'csv');
+                    $data = static::generateUsersReport($startDate, $endDate);
                     break;
                 case 'payments':
-                    $data = static::generatePaymentsReport($startDate, $endDate, $record->format ?? 'csv');
+                    $data = static::generatePaymentsReport($startDate, $endDate);
                     break;
                 default:
                     throw new \Exception('Invalid report type');
             }
 
             if (($record->format ?? 'csv') === 'pdf') {
-                // $data should be an array of rows for PDF
-                if (is_string($data)) {
-                    // If data is CSV string, convert to array
-                    $lines = explode("\n", trim($data));
-                    $headers = isset($lines[0]) ? str_getcsv($lines[0]) : [];
-                    $rows = [];
-                    foreach (array_slice($lines, 1) as $line) {
-                        if (trim($line) === '') continue;
-                        $rows[] = array_combine($headers, str_getcsv($line));
-                    }
-                    $dataForPdf = $rows;
-                } else {
-                    $dataForPdf = $data;
+                // For PDF, convert CSV to array
+                $lines = explode("\r\n", trim($data));
+                $headers = isset($lines[0]) ? str_getcsv($lines[0]) : [];
+                $rows = [];
+                foreach (array_slice($lines, 1) as $line) {
+                    if (trim($line) === '') continue;
+                    $rows[] = array_combine($headers, str_getcsv($line));
                 }
                 $pdf = Pdf::loadView('pdf.report', [
                     'type' => $record->report_type,
-                    'data' => $dataForPdf,
+                    'data' => $rows,
                 ]);
                 $filename = $record->report_type . '_report_' . now()->format('Ymd_His') . '.pdf';
                 Notification::make()
@@ -215,17 +187,35 @@ class ReportResource extends Resource
         }
     }
 
+    // --- CSV Export Functions ---
     private static function generateOrdersReport($startDate, $endDate)
     {
         $orders = Order::with(['user', 'items.product', 'coupon'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
-        $csv = "Order ID,Customer,Email,Phone,Status,Order Date,Product,Quantity,Price,Total,Subtotal,Discount,Coupon,Final Total,Shipping Address,Billing Address\n";
+        $header = [
+            "Order ID",
+            "Customer",
+            "Email",
+            "Phone",
+            "Status",
+            "Order Date",
+            "Product",
+            "Quantity",
+            "Price",
+            "Total",
+            "Subtotal",
+            "Discount",
+            "Coupon",
+            "Final Total",
+            "Shipping Address",
+            "Billing Address",
+        ];
+        $rows = [];
         foreach ($orders as $order) {
             foreach ($order->items as $item) {
-                $csv .= sprintf(
-                    '"%s","%s","%s","%s","%s","%s","%s",%d,%s,%s,%s,%s,%s,%s,"%s","%s"\n',
+                $rows[] = [
                     $order->order_number ?? $order->id,
                     $order->user ? $order->user->name : 'Guest',
                     $order->email,
@@ -240,7 +230,7 @@ class ReportResource extends Resource
                         'cancelled' => 'Cancelled',
                         default => ucfirst($order->status),
                     },
-                    $order->created_at->format('Y-m-d H:i:s'),
+                    $order->created_at->format('d-m-Y H:i'),
                     $item->product->name ?? 'Product Not Found',
                     $item->quantity,
                     number_format($item->price, 2),
@@ -249,12 +239,12 @@ class ReportResource extends Resource
                     number_format($order->discount_amount ?? 0, 2),
                     $order->coupon ? $order->coupon->code : '',
                     number_format($order->final_amount, 2),
-                    $order->shipping_address,
-                    $order->billing_address
-                );
+                    static::escapeForCsv($order->shipping_address),
+                    static::escapeForCsv($order->billing_address),
+                ];
             }
         }
-        return $csv;
+        return static::arrayToCsv(array_merge([$header], $rows));
     }
 
     private static function generateSalesReport($startDate, $endDate)
@@ -263,22 +253,24 @@ class ReportResource extends Resource
             ->where('status', '!=', 'cancelled')
             ->get();
 
+        $header = [
+            "Report Period",
+            "Total Sales (INR)",
+            "Total Orders",
+            "Average Order Value (INR)",
+            "Total Discount (INR)"
+        ];
         $totalSales = $orders->sum('final_amount');
         $totalOrders = $orders->count();
         $averageOrderValue = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
-
-        $csv = "Report Period,Total Sales (INR),Total Orders,Average Order Value (INR),Total Discount (INR)\n";
-        $csv .= sprintf(
-            "%s to %s,%.2f,%d,%.2f,%.2f\n",
-            $startDate->format('Y-m-d'),
-            $endDate->format('Y-m-d'),
-            $totalSales,
+        $row = [
+            $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d'),
+            number_format($totalSales, 2),
             $totalOrders,
-            $averageOrderValue,
-            $orders->sum('discount_amount') ?? 0
-        );
-
-        return $csv;
+            number_format($averageOrderValue, 2),
+            number_format($orders->sum('discount_amount') ?? 0, 2)
+        ];
+        return static::arrayToCsv([$header, $row]);
     }
 
     private static function generateProductsReport($startDate, $endDate)
@@ -287,48 +279,60 @@ class ReportResource extends Resource
             ->where('is_active', true)
             ->get();
 
-        $csv = "Product ID,Name,Category,Subcategory,Price (INR),Stock,Status,Created Date\n";
-        
+        $header = [
+            "Product ID",
+            "Name",
+            "Category",
+            "Subcategory",
+            "Price (INR)",
+            "Stock",
+            "Status",
+            "Created Date"
+        ];
+        $rows = [];
         foreach ($products as $product) {
-            $csv .= sprintf(
-                "%s,%s,%s,%s,%.2f,%d,%s,%s\n",
+            $rows[] = [
                 $product->id,
                 $product->name,
                 $product->category ? $product->category->name : 'N/A',
                 $product->subcategory ? $product->subcategory->name : 'N/A',
-                $product->price,
+                number_format($product->price, 2),
                 $product->stock,
                 $product->is_active ? 'Active' : 'Inactive',
                 $product->created_at->format('Y-m-d')
-            );
+            ];
         }
-
-        return $csv;
+        return static::arrayToCsv(array_merge([$header], $rows));
     }
 
     private static function generateUsersReport($startDate, $endDate)
     {
         $users = User::whereBetween('created_at', [$startDate, $endDate])->get();
 
-        $csv = "User ID,Name,Email,Phone,Registration Date,Total Orders,Total Spent (INR)\n";
-        
+        $header = [
+            "User ID",
+            "Name",
+            "Email",
+            "Phone",
+            "Registration Date",
+            "Total Orders",
+            "Total Spent (INR)"
+        ];
+        $rows = [];
         foreach ($users as $user) {
             $totalOrders = $user->orders()->count();
             $totalSpent = $user->orders()->sum('final_amount');
-            
-            $csv .= sprintf(
-                "%s,%s,%s,%s,%s,%d,%.2f\n",
+            $rows[] = [
                 $user->id,
                 $user->name,
                 $user->email,
                 $user->phone ?? 'N/A',
                 $user->created_at->format('Y-m-d'),
                 $totalOrders,
-                $totalSpent
-            );
+                number_format($totalSpent, 2)
+            ];
         }
-
-        return $csv;
+        return static::arrayToCsv(array_merge([$header], $rows));
     }
 
     private static function generatePaymentsReport($startDate, $endDate)
@@ -337,21 +341,45 @@ class ReportResource extends Resource
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
-        $csv = "Payment ID,Order ID,Amount (INR),Payment Method,Status,Transaction ID,Payment Date\n";
-        
+        $header = [
+            "Payment ID",
+            "Order ID",
+            "Amount (INR)",
+            "Payment Method",
+            "Status",
+            "Transaction ID",
+            "Payment Date"
+        ];
+        $rows = [];
         foreach ($payments as $payment) {
-            $csv .= sprintf(
-                "%s,%s,%.2f,%s,%s,%s,%s\n",
+            $rows[] = [
                 $payment->id,
                 $payment->order_id,
-                $payment->amount,
+                number_format($payment->amount, 2),
                 $payment->payment_method,
                 $payment->status,
                 $payment->transaction_id ?? 'N/A',
                 $payment->created_at->format('Y-m-d H:i:s')
-            );
+            ];
         }
+        return static::arrayToCsv(array_merge([$header], $rows));
+    }
 
-        return $csv;
+    // --- Helper Functions ---
+    private static function escapeForCsv($value)
+    {
+        $escaped = str_replace('"', '""', $value ?? '');
+        $escaped = str_replace(["\r", "\n"], [' ', ' '], $escaped); // Remove newlines
+        return $escaped;
+    }
+
+    private static function arrayToCsv($data)
+    {
+        $lines = [];
+        foreach ($data as $row) {
+            $fields = array_map(fn($v) => '"' . static::escapeForCsv($v) . '"', $row);
+            $lines[] = implode(',', $fields);
+        }
+        return implode("\r\n", $lines) . "\r\n";
     }
 }

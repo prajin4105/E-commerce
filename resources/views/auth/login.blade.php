@@ -100,8 +100,8 @@
         color: #4f46e5;
         text-decoration: underline;
     }
-</style>
-<div>
+    </style>
+    <div>
     <h2 class="login-title">Welcome Back</h2>
     <p class="login-subtitle">Enter your credentials to receive OTP</p>
     @if ($errors->any())
