@@ -5,11 +5,13 @@
   <title>Soul Sky - Order #{{ $order->order_number }}</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
+
+
     body {
       background: #F5F5F3;
       font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
       font-size: 15px;
-      margin: 0;
+      margin: 10;
       padding: 0;
     }
     .invoice-container {
